@@ -1,0 +1,8 @@
+dvf_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: '../data/dvf.duckdb'
+      schema: main
+      threads: 4

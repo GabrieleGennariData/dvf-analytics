@@ -1,0 +1,447 @@
+version: 2
+
+# Tests generiques des modeles de models/marts/.
+#
+# SYNTAXE : `data_tests:` (pas `tests:`) et parametres sous `arguments:`. La
+# forme classique est FATALE sur Fusion 2.0 (dbt1159, exit 1), pas depreciee.
+#
+# STATUT DE CHAQUE TEST : VERIFIE (peut echouer sur une regression reelle),
+# DOCUMENTE (tautologique) ou GARDE-FOU (surveille une regression en amont).
+# DuckDB n'applique pas NOT NULL aux colonnes d'un CTAS, donc chaque not_null
+# mesure une propriete des donnees.
+#
+# Chiffres mesures sur la livraison DVF+ 2026.1, 2014-2025, 16 565 022 mutations.
+
+models:
+
+  # ===========================================================================
+  - name: fct_mutations
+    description: |
+      Table de faits au grain mutation : une ligne par vente ordinaire.
+      15 187 998 lignes. Frontiere du projet : les marts, les tests de
+      population et l'application lisent CE modele, jamais l'intermediate.
+
+      Aucune mesure ajoutee, projection plus filtre. Ce qu'il ne contient pas :
+      les mutations a valeur fonciere inexploitable (37 417, dans le modele
+      rejected) et toutes les natures autres que 'Vente' (VEFA 1 099 309,
+      Echange 118 418, terrain a batir 68 774, Adjudication 52 117,
+      Expropriation 989). Filtre `= 'Vente'` EXACT : un LIKE ferait entrer la
+      VEFA sans produire une seule valeur hors bornes.
+    columns:
+
+      - name: mutation_sk
+        description: |
+          Cle de substitution, hash de id_mutation. Arrive de l'intermediate et
+          se transporte : la regenerer serait une seconde definition.
+        data_tests:
+          # VERIFIE. La garantie vit en amont ; ce test la rend observable ici.
+          - unique
+          # VERIFIE (CTAS / is_nullable, voir l'en-tete).
+          - not_null
+
+      - name: id_mutation
+        description: |
+          Identifiant Cerema (idmutation). Unique sur toute la livraison, mais
+          c'est une propriete mesuree, pas contractuelle : pour un join, utiliser
+          mutation_sk.
+
+      - name: date_mutation
+        description: Date de l'acte. La colonne dont `annee` est derivee en amont.
+
+      - name: annee
+        description: |
+          Annee reelle de l'acte, extraite de date_mutation. Dimension temporelle
+          des marts, et dans le mart commune la colonne qui ordonne la fenetre du
+          lag. La source porte aussi anneemut : zero divergence mesuree, mais la
+          definition canonique reste celle du pipeline.
+
+      - name: nature_mutation
+        description: |
+          Constante 'Vente' apres le filtre du modele, portee quand meme pour
+          rendre ce filtre verifiable sur les donnees.
+
+      - name: vefa
+        description: |
+          Drapeau VEFA de la source, false par construction ici. Porte pour que
+          l'exclusion du neuf soit PROUVABLE par assert_vefa_exclue au lieu
+          d'etre deduite du filtre : la nature vient d'une colonne, le drapeau
+          d'une autre.
+
+      - name: valeur_fonciere
+        description: |
+          Prix declare de la mutation, en EUR, scalaire par acte. Quand l'acte
+          couvre plusieurs biens c'est le prix du PAQUET, attribuable a aucun :
+          d'ou l'exigence de la classe mono-logement pour le prix au m2.
+          Colonne DOUBLE : sum() n'est pas bit-identique entre deux runs.
+
+      - name: n_locaux
+        description: |
+          Nombre de locaux de la mutation. ATTENTION, ce n'est PAS le perimetre :
+          une mutation 111 "UNE MAISON" peut porter n_locaux > 1 (la maison et sa
+          dependance). Le perimetre se lit dans codtypbien.
+
+          Et la colonne n'a pas le meme sens selon l'annee : la part des 111 avec
+          dependance passe de ~5 % (2014-2019) a 30-37 % (2021-2025), un
+          changement d'enregistrement de l'editeur. Les mesures du projet n'en
+          dependent pas, mais une serie longue lue ici melange deux conventions.
+
+      - name: n_parcelles
+        description: Nombre de parcelles cadastrales de la mutation.
+
+      - name: codtypbien
+        description: |
+          Typologie officielle du bien (Cerema), code hierarchique : 111 = UNE
+          MAISON, 121 = UN APPARTEMENT, 112/122 = pluriel, 110/120 = indetermine,
+          131 = UNE DEPENDANCE, 2xxx = terrains. Jamais NULL. C'est la colonne qui
+          desambigue un type_local NULL.
+
+      - name: libtypbien
+        description: Libelle officiel du code ci-dessus, pour la lisibilite.
+
+      - name: type_local
+        description: |
+          'Maison' (111), 'Appartement' (121), NULL pour tout le reste. Cle de
+          grain des deux marts de prix.
+
+          PIEGE : NULL n'est pas une categorie mais "hors perimetre
+          mono-logement", et c'est la majorite des lignes. Grouper sans exclure
+          le NULL fusionne des populations que codtypbien distingue.
+        data_tests:
+          # DOCUMENTE - le CASE de l'intermediate n'a que deux branches, et
+          # accepted_values ne voit pas les NULL. Tenu pour qu'une troisieme
+          # branche future trouve le test deja en position.
+          - accepted_values:
+              arguments:
+                values:
+                  - "Maison"
+                  - "Appartement"
+
+      - name: surface_bati_totale
+        description: |
+          Surface batie en m2 (sbati). Sur les classes 111/121 elle vaut la
+          surface du type, dependances non comprises, et elle est toujours > 0.
+          Hors de ce perimetre elle peut etre NULL ou nulle.
+
+      - name: prix_m2
+        description: |
+          valeur_fonciere / surface_bati_totale, calcule UNE SEULE FOIS dans
+          l'intermediate et transporte. Non NULL exactement sur les lignes
+          is_price_eligible. ATTENTION : pas encore filtre par plausibilite, donc
+          toute mesure de prix doit agreger avec `filter (where
+          is_price_plausible)`, ce que font les marts.
+
+      - name: is_price_eligible
+        description: |
+          Drapeau STRUCTUREL : le prix au m2 est attribuable a un bien
+          mono-logement (Vente + codtypbien 111/121 + surface positive).
+          9 817 126 lignes vraies.
+
+      - name: is_price_plausible
+        description: |
+          Drapeau de POPULATION, emboite dans le precedent : prix_m2 dans
+          [100, 40 000] EUR/m2 et surface dans [9, 1500] m2. C'est LA population
+          de toutes les mesures de prix des marts.
+
+              16 527 605 valides -> 9 817 126 eligibles -> 9 779 743 plausibles
+
+          Les 37 383 exclues (0,38 %) ne sont pas reparties uniformement : dans
+          certaines cellules le prix symbolique est la norme, et
+          n_ventes_prix_exclues existe pour qu'elles se denoncent seules.
+
+      - name: code_commune
+        description: |
+          Code Insee, ou NULL quand l'acte touche plusieurs communes (1,19 % des
+          ventes, jamais attribuees arbitrairement a la premiere de la liste).
+
+          Pas de test relationships vers dim_commune : le COG 2026 ignore
+          certains codes d'actes anciens (347 codes, 18 629 ventes, 0,124 %), donc
+          un relationships strict serait rouge sur un modele juste.
+          assert_communes_orphelines borne cette part a 0,30 %.
+
+      - name: code_departement
+        description: |
+          Departement de l'acte, toujours connu, meme quand code_commune est NULL.
+          Outre-mer (971-974) et Corse (2A, 2B) : traiter comme chaine. Absents de
+          la source : 57, 67, 68 (livre foncier) et 976.
+
+  # ===========================================================================
+  - name: dim_commune
+    description: |
+      L'unique dimension du projet, construite sur le COG Insee 2026, PAS sur les
+      donnees DVF+, qui ne livrent aucun nom. Une ligne par code_commune,
+      snapshot du millesime en vigueur, sans historique des noms.
+
+      Independante de fct par construction : un referentiel externe garde au test
+      de couverture quelque chose a verifier.
+
+      CE QU'ELLE NE CONTIENT PAS : Paris, Lyon et Marseille comme villes. Le DVF
+      code ces trois villes a l'arrondissement, et un classement traite Paris
+      comme vingt communes distinctes.
+
+      584 codes ont plusieurs lignes COG : priorite COM > ARM > COMD > COMA,
+      ordre rendu total par les tie-breakers, donc resultat deterministe.
+    columns:
+
+      - name: code_commune
+        description: |
+          Code Insee, cle de la dimension. Pour Paris, Lyon et Marseille : codes
+          d'arrondissement, pas de ville.
+        data_tests:
+          # VERIFIE - propriete mesuree des donnees, pas contrainte declaree.
+          - not_null
+          # DOCUMENTE - garanti par le row_number de la deduplication.
+          - unique
+
+      - name: nom_commune
+        description: |
+          Libelle du COG, forme typographique complete, article compris. Snapshot
+          2026 : une commune renommee n'a ici que sa forme courante.
+        data_tests:
+          # VERIFIE
+          - not_null
+
+      - name: code_departement
+        description: |
+          Colonne DEP du COG quand elle est remplie (COM, ARM), prefixe du code
+          sinon (3 caracteres pour '97x', 2 autrement). Chaine.
+        data_tests:
+          # VERIFIE
+          - not_null
+
+  # ===========================================================================
+  - name: mart_prix_departement
+    # Les deux marts n'ont PAS le meme jeu de colonnes : prix_m2_moyen et
+    # surface_mediane n'existent qu'ici, prix_m2_median_prec et
+    # variation_yoy_pct que dans mart_prix_commune.
+    description: |
+      Volumes et prix au m2 par departement, annee et type de bien. Premier
+      modele qui PRODUIT des mesures au lieu de les transporter.
+
+      GRAIN (code_departement, annee, type_local), grille SATUREE : 2 328
+      cellules = 97 x 12 x 2, aucune manquante, aucune mesure NULL (minimum
+      observe 50 ventes plausibles). C'est la difference avec le mart commune.
+
+      Source : fct_mutations restreint a Maison et Appartement. Ce mart couvre
+      TOUS les actes, commune connue ou non ; l'ecart avec le mart commune est
+      verifie par assert_reconciliation_marts.
+
+      Aucun seuil de volume : critere de presentation, il vit dans l'application.
+    columns:
+
+      - name: prix_dept_sk
+        description: |
+          Hash des trois colonnes du GROUP BY, dans le meme ordre. Generee ici :
+          le grain nait dans ce modele.
+        data_tests:
+          # VERIFIE (CTAS / is_nullable).
+          - not_null
+          # DOCUMENTE - la sk est construite sur les colonnes du GROUP BY.
+          - unique
+
+      - name: code_departement
+        description: |
+          Departement de la cellule. Outre-mer et Corse : chaine.
+        data_tests:
+          # VERIFIE
+          - not_null
+
+      - name: annee
+        description: Annee reelle de l'acte, de 2014 a 2025.
+        data_tests:
+          # VERIFIE
+          - not_null
+
+      - name: type_local
+        description: |
+          'Maison' ou 'Appartement', restriction du grain deja appliquee,
+          contrairement a fct_mutations ou NULL est majoritaire.
+        data_tests:
+          # VERIFIE
+          - not_null
+          # DOCUMENTE - le where du modele le garantit.
+          - accepted_values:
+              arguments:
+                values:
+                  - "Maison"
+                  - "Appartement"
+
+      - name: n_ventes_total
+        description: |
+          Volume de marche de la cellule : count(*) sans filtre de prix. Pas
+          "toutes les transactions" : la population est deja restreinte trois
+          fois en amont (rejetees, natures, types). Il coincide aujourd'hui avec
+          la population eligible, mais c'est une coincidence des donnees que
+          assert_identite_populations surveille.
+
+      - name: n_ventes_eligible
+        description: |
+          ATTENTION AU NOM, la colonne la plus facile a mal lire du projet : elle
+          compte les lignes `is_price_plausible`, PAS `is_price_eligible`. Nom
+          conserve pour la continuite avec le seuil de l'application. C'est la
+          base de toutes les mesures de prix de la ligne.
+
+      - name: n_ventes_prix_exclues
+        description: |
+          Lignes eligibles au prix juge hors observation de marche. N'entre dans
+          aucun calcul : rend la part exclue visible dans la ligne meme.
+          IDENTITE : n_ventes_eligible + n_ventes_prix_exclues = eligibles.
+
+      - name: prix_m2_median
+        description: |
+          MEDIANE du prix au m2, LA mesure de tendance centrale du projet : les
+          queues sont longues et asymetriques, la moyenne surestime. Calculee sur
+          les seules lignes plausibles, prix_m2 etant agrege et jamais recalcule.
+          Zero NULL sur les 2 328 cellules.
+
+          A NE PAS FAIRE : agreger cette colonne pour un chiffre national ou
+          pluriannuel, la mediane des medianes n'est pas la mediane.
+        data_tests:
+          # GARDE-FOU quasi tautologique : une mediane ne sort pas des bornes de
+          # ses entrees. Surveille une regression en amont. Bornes inclusives,
+          # verifie par controle negatif ; les NULL ne sont pas des violations.
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 100
+                max_value: 40000
+
+      - name: prix_m2_moyen
+        description: |
+          MOYENNE du prix au m2, seulement dans ce mart. Pas la mesure a
+          presenter : elle rend lisible l'asymetrie de la cellule a cote de la
+          mediane. Arrondie a 2 decimales, la precision reelle d'un avg() sur
+          DOUBLE en scan parallele, et la condition de la reproductibilite du
+          contenu. Seul avg() du projet.
+
+      - name: surface_mediane
+        description: |
+          MEDIANE de la surface batie, sur la MEME population que les mesures de
+          prix, sinon les trois chiffres de la ligne decriraient des ensembles
+          differents. A ne pas faire : prix_m2_median * surface_mediane.
+
+  # ===========================================================================
+  - name: mart_prix_commune
+    # Comme ci-dessus : ce bloc n'est pas une copie de celui du mart
+    # departement, les jeux de colonnes different.
+    description: |
+      Volumes, prix median au m2 et variation annuelle par commune, annee et type
+      de bien. Premier modele avec une mesure de TENDANCE.
+
+      GRAIN (code_commune, annee, type_local). code_departement est dans le GROUP
+      BY mais pas dans la cle : c'est ce qui fait du test unique un vrai test.
+
+      GRILLE CREUSE, la difference qui gouverne le modele : beaucoup de cellules
+      n'existent pas, et aucune densification ne les invente. Beaucoup d'autres
+      ont du volume sans aucun prix, et les mesures y sont NULL et non zero :
+      871 cellules (0,19 %) pour 963 ventes reelles.
+
+      PERIMETRE : actes a commune UNIQUE. Les multi-communes (1,19 %) sont dans
+      le mart departement et pas ici, et l'ecart entre les totaux vaut exactement
+      leur compte (assert_reconciliation_marts).
+
+      Paris, Lyon et Marseille apparaissent en 45 arrondissements, pas en villes.
+    columns:
+
+      - name: prix_commune_sk
+        description: |
+          Hash de (code_commune, annee, type_local). Si une commune apparaissait
+          sous deux departements, le GROUP BY produirait deux lignes avec la meme
+          sk : le test FALSIFIE la dependance commune -> departement.
+        data_tests:
+          # VERIFIE, et non tautologique : le GROUP BY a une colonne de plus que
+          # la cle. Seul unique du fichier qui verifie ce que le SQL ne garantit pas.
+          - unique
+          # VERIFIE
+          - not_null
+
+      - name: code_commune
+        description: |
+          Code Insee, jamais NULL ici. Join sur dim_commune pour le nom.
+          Paris, Lyon et Marseille : codes d'arrondissement.
+        data_tests:
+          # VERIFIE - premisse du join de l'application et du test de la garde YoY.
+          - not_null
+
+      - name: code_departement
+        description: |
+          Departement de la commune, dans le GROUP BY mais pas dans la cle.
+          Outre-mer et Corse : chaine.
+        data_tests:
+          # VERIFIE
+          - not_null
+
+      - name: annee
+        description: |
+          Annee reelle de l'acte, et ici la colonne qui ORDONNE la fenetre du lag :
+          ordonner sur autre chose decalerait la variation d'un an.
+        data_tests:
+          # VERIFIE
+          - not_null
+
+      - name: type_local
+        description: |
+          'Maison' ou 'Appartement'. Aussi l'une des deux colonnes de partition de
+          la fenetre : la serie d'une commune est par type de bien.
+        data_tests:
+          # VERIFIE
+          - not_null
+
+      - name: n_ventes_total
+        description: |
+          Volume de marche de la cellule, sans filtre de prix, hors actes
+          multi-communes. Toujours > 0, ce qui n'implique pas
+          n_ventes_eligible > 0.
+
+      - name: n_ventes_eligible
+        description: |
+          MEME PIEGE DE NOM que dans l'autre mart : compte les lignes
+          is_price_plausible. A ce grain l'equivoque coute plus cher, elle decide
+          de quel cote d'un seuil de volume tombe une cellule. Vaut 0 sur les
+          cellules a volume sans prix.
+
+      - name: n_ventes_prix_exclues
+        description: |
+          Eligibles au prix hors marche. A ce grain, c'est la colonne qui
+          distingue "commune sortie d'un classement par le filtre de
+          plausibilite" de "commune sans marche".
+
+      - name: prix_m2_median
+        description: |
+          MEDIANE du prix au m2 sur les seules lignes plausibles.
+
+          NULL = volume de marche sans prix observable, PAS zero. Remplacer par 0
+          inventerait un marche a prix nul ; un order by ne les exclut pas, il
+          faut un filtre ; avg() les ignore en changeant le denominateur sans le
+          dire. Dans le mart departement cette colonne n'est jamais NULL.
+        data_tests:
+          # GARDE-FOU, memes bornes inclusives que l'autre mart. Les NULL by
+          # design ne sont pas des violations, verifie en execution.
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 100
+                max_value: 40000
+
+      - name: prix_m2_median_prec
+        description: |
+          prix_m2_median de l'annee precedente de la meme serie. LE LAG DEJA
+          GARDE : vaut le lag seulement si l'annee precedente est exactement
+          annee - 1, NULL sinon. Expose comme colonne pour que la garde soit
+          auditable et que variation_yoy_pct devienne une fonction de deux
+          colonnes de la meme ligne, testable sans refaire la fenetre.
+
+      - name: variation_yoy_pct
+        description: |
+          Variation annuelle de prix_m2_median, EN POINTS DE POURCENTAGE (5 =
+          +5 %) : le nom porte l'unite parce qu'un classement trie sur une colonne
+          fausse d'un facteur 100 reste trie pareil. Formule verifiee ligne a
+          ligne par assert_yoy_formule.
+
+          NULL POUR TROIS RAISONS DISTINCTES, aucune n'etant un zero : premiere
+          ligne de la serie, trou dans la serie, mediane manquante d'un cote. Un
+          coalesce(..., 0) transformerait les trois en "le prix n'a pas change".
+          Distinguer via prix_m2_median_prec.
+
+    # DELIBEREMENT NON ECRITS : not_null sur prix_m2_median, prix_m2_median_prec
+    # et variation_yoy_pct. Le NULL y est la forme CORRECTE de la donnee, un
+    # not_null serait rouge sur un modele juste, et la reaction naturelle
+    # (remplir avec 0) inventerait une variation nulle la ou elle n'est pas
+    # definie.

@@ -1,0 +1,44 @@
+# Dependances directes de l'application, epinglees a l'exact.
+#
+# INTERPRETE : Python 3.14.7 (`.venv/Scripts/python.exe --version`, mesure).
+# Les quatre epinglages ci-dessous n'ont ete resolus que sous cette version.
+# Streamlit Community Cloud a son propre defaut - historiquement 3.12 - et la
+# version se choisit a la main dans le menu deroulant « Python version » des
+# Advanced settings, au moment du deploiement. Sans ce choix, Cloud resout ces
+# epinglages sous un interprete sur lequel ils n'ont jamais ete essayes.
+#
+# Ce fichier est le SEUL descripteur d'environnement du depot : verifie qu'il
+# n'existe ni pyproject.toml, ni Pipfile, ni environment.yml, ni setup.py, ni
+# uv.lock, ni poetry.lock, ni runtime.txt. Cela compte parce que Cloud utilise
+# le PREMIER descripteur qu'il trouve selon son propre ordre de precedence, et
+# un fichier ajoute demain pourrait passer devant celui-ci sans le signaler.
+#
+# Versions MESUREES sur l'environnement qui venait d'executer l'application,
+# lues avec `pip show`, recoupees avec `pip list --format=freeze` et avec les
+# `__version__` des imports. Aucun epinglage ecrit par inference : ce qui n'a
+# pas ete lu n'a pas ete mis.
+#
+# Pourquoi `==` et non `>=` sur les quatre, et pas seulement sur duckdb.
+#
+# duckdb est la moitie « lecteur » d'un couple valide : la base de travail est
+# ecrite par le DuckDB v1.5.4 embarque dans dbt Fusion (source_id 08e34c447b)
+# et relue par ce paquet, qui produit `app/app.duckdb` (library_version
+# v1.5.5, source_id d8cdaa33fd). Ce couple a ete verifie, pas suppose, et
+# l'epinglage le conserve. La version de l'ecrivain ne s'installe pas depuis
+# pip : elle est declaree dans le README.
+#
+# streamlit et plotly n'avaient pas d'epinglage, et sans lui Cloud
+# installerait la derniere version publiee au moment du deploiement. Ce n'est
+# pas theorique : `use_container_width` est devenu deprecie en 1.62 avec
+# retrait annonce, et a ete remplace ici par `width="stretch"` - l'API a bouge
+# entre deux versions et le code de ce depot depend de la forme nouvelle. Sans
+# epinglage, l'application qui passe les controles ici n'est pas celle qui
+# tourne en production.
+#
+# pandas est une dependance DIRECTE - l'application l'importe et s'en sert
+# pour le format des tableaux et pour `pd.isna` - et pas seulement une
+# transitive de streamlit : elle est donc epinglee comme les autres.
+duckdb==1.5.5
+streamlit==1.62.0
+plotly==6.9.0
+pandas==3.0.5

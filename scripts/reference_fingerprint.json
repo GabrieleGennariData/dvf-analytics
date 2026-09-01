@@ -1,0 +1,793 @@
+{
+  "cell_sample": {
+    "mart_prix_commune_49007_appartement_serie": [
+      {
+        "annee": 2014,
+        "prix_m2_median": 1842.6212590299278,
+        "prix_m2_median_prec": null,
+        "variation_yoy_pct": null
+      },
+      {
+        "annee": 2015,
+        "prix_m2_median": 1756.7567567567567,
+        "prix_m2_median_prec": 1842.6212590299278,
+        "variation_yoy_pct": -4.659910540616234
+      },
+      {
+        "annee": 2016,
+        "prix_m2_median": 1784.313725490196,
+        "prix_m2_median_prec": 1756.7567567567567,
+        "variation_yoy_pct": 1.5686274509803946
+      },
+      {
+        "annee": 2017,
+        "prix_m2_median": 1810.0637181409297,
+        "prix_m2_median_prec": 1784.313725490196,
+        "variation_yoy_pct": 1.443131456249911
+      },
+      {
+        "annee": 2018,
+        "prix_m2_median": 1937.7155172413793,
+        "prix_m2_median_prec": 1810.0637181409297,
+        "variation_yoy_pct": 7.052337319459531
+      },
+      {
+        "annee": 2019,
+        "prix_m2_median": 2063.564213564214,
+        "prix_m2_median_prec": 1937.7155172413793,
+        "variation_yoy_pct": 6.494694149015148
+      },
+      {
+        "annee": 2020,
+        "prix_m2_median": 2552.9411764705883,
+        "prix_m2_median_prec": 2063.564213564214,
+        "variation_yoy_pct": 23.715131309682704
+      },
+      {
+        "annee": 2021,
+        "prix_m2_median": 2982.4561403508774,
+        "prix_m2_median_prec": 2552.9411764705883,
+        "variation_yoy_pct": 16.82431886167031
+      },
+      {
+        "annee": 2022,
+        "prix_m2_median": 3250.0,
+        "prix_m2_median_prec": 2982.4561403508774,
+        "variation_yoy_pct": 8.97058823529411
+      },
+      {
+        "annee": 2023,
+        "prix_m2_median": 3230.6372549019607,
+        "prix_m2_median_prec": 3250.0,
+        "variation_yoy_pct": -0.5957767722473644
+      },
+      {
+        "annee": 2024,
+        "prix_m2_median": 3137.0485036119712,
+        "prix_m2_median_prec": 3230.6372549019607,
+        "variation_yoy_pct": -2.896913020735581
+      },
+      {
+        "annee": 2025,
+        "prix_m2_median": 3142.8571428571427,
+        "prix_m2_median_prec": 3137.0485036119712,
+        "variation_yoy_pct": 0.18516255768705572
+      }
+    ],
+    "mart_prix_commune_prix_m2_median_max": 35714.28571428572,
+    "mart_prix_commune_prix_m2_median_min": 100.0,
+    "mart_prix_departement_23_maison_2025": {
+      "annee": 2025,
+      "code_departement": "23",
+      "n_ventes_eligible": 1662,
+      "n_ventes_prix_exclues": 31,
+      "n_ventes_total": 1693,
+      "prix_dept_sk": "51b4fd07c03b3d23da2f61adbce84900",
+      "prix_m2_median": 869.5652173913044,
+      "prix_m2_moyen": 955.16,
+      "surface_mediane": 89.0,
+      "type_local": "Maison"
+    },
+    "mart_prix_departement_75_appartement_2025": {
+      "annee": 2025,
+      "code_departement": "75",
+      "n_ventes_eligible": 28765,
+      "n_ventes_prix_exclues": 308,
+      "n_ventes_total": 29073,
+      "prix_dept_sk": "396a646bd66bf0db80bb76c9260cd4b4",
+      "prix_m2_median": 9698.75,
+      "prix_m2_moyen": 10067.61,
+      "surface_mediane": 43.0,
+      "type_local": "Appartement"
+    },
+    "mart_prix_departement_971_maison_2025": {
+      "annee": 2025,
+      "code_departement": "971",
+      "n_ventes_eligible": 840,
+      "n_ventes_prix_exclues": 113,
+      "n_ventes_total": 953,
+      "prix_dept_sk": "acfd252cb606206493cf9a6085d74598",
+      "prix_m2_median": 2874.779541446208,
+      "prix_m2_moyen": 3194.64,
+      "surface_mediane": 88.0,
+      "type_local": "Maison"
+    },
+    "mart_prix_departement_prix_m2_median_max": 15390.47619047619,
+    "mart_prix_departement_prix_m2_median_min": 698.2758620689655
+  },
+  "code_ref": {
+    "_note": "dbt_tree (HEAD:dbt) est le champ autoritatif : il couvre models/, tests/, dbt_project.yml, packages.yml, package-lock.yml, profiles.yml, tout ce qui decide de la sortie de dbt build. models_tree (HEAD:dbt/models) ne sert qu'au diagnostic quand dbt_tree diverge, pour separer 'un modele a change' de 'le lockfile ou un test a change'. Enregistres seulement avec dbt/ propre : le script sort en 1 sinon.",
+    "dbt_tree": "da41e35a4890d6e27147acc39b5440f953c63e49",
+    "models_tree": "63ecdfa918eed502e7f8c13b720dc9025f80911a"
+  },
+  "generated_at": "2026-09-01T14:08:34.390411+00:00",
+  "git_head": "8101ddda512dd90e7591d0106360942dcf599237",
+  "raw_inputs": [
+    {
+      "bytes": 1087603212,
+      "name": "DVF_PLUS_2026_1_CSV_R999_ED251.7z",
+      "sha256": "9be9147d15b5bf32b74595b724ca4eec77e517802bc1e70fa4df69b643ae5a18"
+    },
+    {
+      "bytes": 3565935,
+      "name": "v_commune_2026.csv",
+      "sha256": "7be1153de3a63df48fa0ca77f8490c8a0c5c9c4eb12f5cec1ca7f70b0237b1d3"
+    }
+  ],
+  "reader": {
+    "library_version": "v1.5.5",
+    "pip_version": "1.5.5",
+    "source_id": "d8cdaa33fd"
+  },
+  "tables": {
+    "dim_commune": {
+      "bit_xor_hash": 11337827188868385705,
+      "count": 36912,
+      "schema": [
+        [
+          "code_commune",
+          "VARCHAR"
+        ],
+        [
+          "nom_commune",
+          "VARCHAR"
+        ],
+        [
+          "code_departement",
+          "VARCHAR"
+        ]
+      ],
+      "sum_hash": 338558451529941035689419
+    },
+    "fct_mutations": {
+      "bit_xor_hash": 14001714125031679370,
+      "count": 15187998,
+      "schema": [
+        [
+          "mutation_sk",
+          "VARCHAR"
+        ],
+        [
+          "id_mutation",
+          "VARCHAR"
+        ],
+        [
+          "date_mutation",
+          "DATE"
+        ],
+        [
+          "annee",
+          "INTEGER"
+        ],
+        [
+          "nature_mutation",
+          "VARCHAR"
+        ],
+        [
+          "vefa",
+          "BOOLEAN"
+        ],
+        [
+          "valeur_fonciere",
+          "DOUBLE"
+        ],
+        [
+          "n_locaux",
+          "INTEGER"
+        ],
+        [
+          "n_parcelles",
+          "INTEGER"
+        ],
+        [
+          "codtypbien",
+          "VARCHAR"
+        ],
+        [
+          "libtypbien",
+          "VARCHAR"
+        ],
+        [
+          "type_local",
+          "VARCHAR"
+        ],
+        [
+          "surface_bati_totale",
+          "DOUBLE"
+        ],
+        [
+          "prix_m2",
+          "DOUBLE"
+        ],
+        [
+          "is_price_eligible",
+          "BOOLEAN"
+        ],
+        [
+          "is_price_plausible",
+          "BOOLEAN"
+        ],
+        [
+          "code_commune",
+          "VARCHAR"
+        ],
+        [
+          "code_departement",
+          "VARCHAR"
+        ]
+      ],
+      "sum_hash": 140085236061675992734042782
+    },
+    "int_dvfplus__mutations": {
+      "bit_xor_hash": 14137144973128793015,
+      "count": 16527605,
+      "schema": [
+        [
+          "mutation_sk",
+          "VARCHAR"
+        ],
+        [
+          "id_mutation",
+          "VARCHAR"
+        ],
+        [
+          "date_mutation",
+          "DATE"
+        ],
+        [
+          "annee",
+          "INTEGER"
+        ],
+        [
+          "nature_mutation",
+          "VARCHAR"
+        ],
+        [
+          "vefa",
+          "BOOLEAN"
+        ],
+        [
+          "valeur_fonciere",
+          "DOUBLE"
+        ],
+        [
+          "n_locaux",
+          "INTEGER"
+        ],
+        [
+          "n_parcelles",
+          "INTEGER"
+        ],
+        [
+          "codtypbien",
+          "VARCHAR"
+        ],
+        [
+          "libtypbien",
+          "VARCHAR"
+        ],
+        [
+          "type_local",
+          "VARCHAR"
+        ],
+        [
+          "surface_bati_totale",
+          "DOUBLE"
+        ],
+        [
+          "is_price_eligible",
+          "BOOLEAN"
+        ],
+        [
+          "prix_m2",
+          "DOUBLE"
+        ],
+        [
+          "is_price_plausible",
+          "BOOLEAN"
+        ],
+        [
+          "code_commune",
+          "VARCHAR"
+        ],
+        [
+          "code_departement",
+          "VARCHAR"
+        ]
+      ],
+      "sum_hash": 152481917454260159978646579
+    },
+    "int_dvfplus__mutations_rejected": {
+      "bit_xor_hash": 111217559550309540,
+      "count": 37417,
+      "schema": [
+        [
+          "id_mutation",
+          "VARCHAR"
+        ],
+        [
+          "date_mutation",
+          "DATE"
+        ],
+        [
+          "annee",
+          "INTEGER"
+        ],
+        [
+          "nature_mutation",
+          "VARCHAR"
+        ],
+        [
+          "vefa",
+          "BOOLEAN"
+        ],
+        [
+          "valeur_fonciere",
+          "DOUBLE"
+        ],
+        [
+          "n_locaux",
+          "INTEGER"
+        ],
+        [
+          "n_parcelles",
+          "INTEGER"
+        ],
+        [
+          "codtypbien",
+          "VARCHAR"
+        ],
+        [
+          "libtypbien",
+          "VARCHAR"
+        ],
+        [
+          "code_departement",
+          "VARCHAR"
+        ],
+        [
+          "reject_reason",
+          "VARCHAR"
+        ]
+      ],
+      "sum_hash": 345583082555681399658168
+    },
+    "mart_prix_commune": {
+      "bit_xor_hash": 8762476035844643879,
+      "count": 449027,
+      "schema": [
+        [
+          "prix_commune_sk",
+          "VARCHAR"
+        ],
+        [
+          "code_commune",
+          "VARCHAR"
+        ],
+        [
+          "code_departement",
+          "VARCHAR"
+        ],
+        [
+          "annee",
+          "INTEGER"
+        ],
+        [
+          "type_local",
+          "VARCHAR"
+        ],
+        [
+          "n_ventes_total",
+          "BIGINT"
+        ],
+        [
+          "n_ventes_eligible",
+          "BIGINT"
+        ],
+        [
+          "n_ventes_prix_exclues",
+          "BIGINT"
+        ],
+        [
+          "prix_m2_median",
+          "DOUBLE"
+        ],
+        [
+          "prix_m2_median_prec",
+          "DOUBLE"
+        ],
+        [
+          "variation_yoy_pct",
+          "DOUBLE"
+        ]
+      ],
+      "sum_hash": 4144439847360146920677051
+    },
+    "mart_prix_departement": {
+      "bit_xor_hash": 4113712522349383744,
+      "count": 2328,
+      "schema": [
+        [
+          "prix_dept_sk",
+          "VARCHAR"
+        ],
+        [
+          "code_departement",
+          "VARCHAR"
+        ],
+        [
+          "annee",
+          "INTEGER"
+        ],
+        [
+          "type_local",
+          "VARCHAR"
+        ],
+        [
+          "n_ventes_total",
+          "BIGINT"
+        ],
+        [
+          "n_ventes_eligible",
+          "BIGINT"
+        ],
+        [
+          "n_ventes_prix_exclues",
+          "BIGINT"
+        ],
+        [
+          "prix_m2_median",
+          "DOUBLE"
+        ],
+        [
+          "prix_m2_moyen",
+          "DOUBLE"
+        ],
+        [
+          "surface_mediane",
+          "DOUBLE"
+        ]
+      ],
+      "sum_hash": 21139733028789851778932
+    },
+    "stg_cog__communes": {
+      "bit_xor_hash": 11966726172724145547,
+      "count": 37496,
+      "schema": [
+        [
+          "TYPECOM",
+          "VARCHAR"
+        ],
+        [
+          "COM",
+          "VARCHAR"
+        ],
+        [
+          "REG",
+          "VARCHAR"
+        ],
+        [
+          "DEP",
+          "VARCHAR"
+        ],
+        [
+          "CTCD",
+          "VARCHAR"
+        ],
+        [
+          "ARR",
+          "VARCHAR"
+        ],
+        [
+          "TNCC",
+          "VARCHAR"
+        ],
+        [
+          "NCC",
+          "VARCHAR"
+        ],
+        [
+          "NCCENR",
+          "VARCHAR"
+        ],
+        [
+          "LIBELLE",
+          "VARCHAR"
+        ],
+        [
+          "CAN",
+          "VARCHAR"
+        ],
+        [
+          "COMPARENT",
+          "VARCHAR"
+        ]
+      ],
+      "sum_hash": 347868528526802731249519
+    },
+    "stg_dvfplus__mutations": {
+      "bit_xor_hash": 7923104372983365917,
+      "count": 16565022,
+      "schema": [
+        [
+          "idmutation",
+          "VARCHAR"
+        ],
+        [
+          "idmutinvar",
+          "VARCHAR"
+        ],
+        [
+          "idopendata",
+          "VARCHAR"
+        ],
+        [
+          "idnatmut",
+          "BIGINT"
+        ],
+        [
+          "codservch",
+          "VARCHAR"
+        ],
+        [
+          "refdoc",
+          "VARCHAR"
+        ],
+        [
+          "datemut",
+          "DATE"
+        ],
+        [
+          "anneemut",
+          "INTEGER"
+        ],
+        [
+          "moismut",
+          "INTEGER"
+        ],
+        [
+          "coddep",
+          "VARCHAR"
+        ],
+        [
+          "libnatmut",
+          "VARCHAR"
+        ],
+        [
+          "nbartcgi",
+          "BIGINT"
+        ],
+        [
+          "l_artcgi",
+          "VARCHAR"
+        ],
+        [
+          "vefa",
+          "BOOLEAN"
+        ],
+        [
+          "valeurfonc",
+          "DOUBLE"
+        ],
+        [
+          "nbdispo",
+          "BIGINT"
+        ],
+        [
+          "nblot",
+          "DOUBLE"
+        ],
+        [
+          "nbcomm",
+          "INTEGER"
+        ],
+        [
+          "l_codinsee",
+          "VARCHAR"
+        ],
+        [
+          "nbsection",
+          "BIGINT"
+        ],
+        [
+          "l_section",
+          "VARCHAR"
+        ],
+        [
+          "nbpar",
+          "INTEGER"
+        ],
+        [
+          "l_idpar",
+          "VARCHAR"
+        ],
+        [
+          "nbparmut",
+          "BIGINT"
+        ],
+        [
+          "l_idparmut",
+          "VARCHAR"
+        ],
+        [
+          "nbsuf",
+          "BIGINT"
+        ],
+        [
+          "sterr",
+          "DOUBLE"
+        ],
+        [
+          "l_dcnt",
+          "VARCHAR"
+        ],
+        [
+          "nbvolmut",
+          "BIGINT"
+        ],
+        [
+          "nblocmut",
+          "INTEGER"
+        ],
+        [
+          "l_idlocmut",
+          "VARCHAR"
+        ],
+        [
+          "nblocmai",
+          "INTEGER"
+        ],
+        [
+          "nblocapt",
+          "INTEGER"
+        ],
+        [
+          "nblocdep",
+          "INTEGER"
+        ],
+        [
+          "nblocact",
+          "INTEGER"
+        ],
+        [
+          "nbapt1pp",
+          "BIGINT"
+        ],
+        [
+          "nbapt2pp",
+          "BIGINT"
+        ],
+        [
+          "nbapt3pp",
+          "BIGINT"
+        ],
+        [
+          "nbapt4pp",
+          "BIGINT"
+        ],
+        [
+          "nbapt5pp",
+          "BIGINT"
+        ],
+        [
+          "nbmai1pp",
+          "BIGINT"
+        ],
+        [
+          "nbmai2pp",
+          "BIGINT"
+        ],
+        [
+          "nbmai3pp",
+          "BIGINT"
+        ],
+        [
+          "nbmai4pp",
+          "BIGINT"
+        ],
+        [
+          "nbmai5pp",
+          "BIGINT"
+        ],
+        [
+          "sbati",
+          "DOUBLE"
+        ],
+        [
+          "sbatmai",
+          "DOUBLE"
+        ],
+        [
+          "sbatapt",
+          "DOUBLE"
+        ],
+        [
+          "sbatact",
+          "DOUBLE"
+        ],
+        [
+          "sapt1pp",
+          "DOUBLE"
+        ],
+        [
+          "sapt2pp",
+          "DOUBLE"
+        ],
+        [
+          "sapt3pp",
+          "DOUBLE"
+        ],
+        [
+          "sapt4pp",
+          "DOUBLE"
+        ],
+        [
+          "sapt5pp",
+          "DOUBLE"
+        ],
+        [
+          "smai1pp",
+          "DOUBLE"
+        ],
+        [
+          "smai2pp",
+          "DOUBLE"
+        ],
+        [
+          "smai3pp",
+          "DOUBLE"
+        ],
+        [
+          "smai4pp",
+          "DOUBLE"
+        ],
+        [
+          "smai5pp",
+          "DOUBLE"
+        ],
+        [
+          "codtypbien",
+          "VARCHAR"
+        ],
+        [
+          "libtypbien",
+          "VARCHAR"
+        ],
+        [
+          "geompar_x",
+          "DOUBLE"
+        ],
+        [
+          "geompar_y",
+          "DOUBLE"
+        ]
+      ],
+      "sum_hash": 152798146400528307675222789
+    }
+  },
+  "writer_declared": {
+    "_note": "Couple writer->reader valide : le DuckDB embarque dans dbt Fusion qui ecrit data/dvf.duckdb. DECLARE et non mesure : pragma_version() rapporte le moteur qui lit, pas celui qui a ecrit. A comparer a la main avec 'select library_version, source_id from pragma_version()' execute par dbt, pas par le pip duckdb.",
+    "library_version": "v1.5.4",
+    "source_id": "08e34c447b"
+  }
+}

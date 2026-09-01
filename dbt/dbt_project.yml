@@ -1,0 +1,4 @@
+name: 'dvf_analytics'
+profile: 'dvf_analytics'
+model-paths: ["models"]
+target-path: "target"

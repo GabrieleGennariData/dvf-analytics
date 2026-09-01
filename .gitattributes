@@ -1,0 +1,18 @@
+# Normalisation des fins de ligne (checkout natif selon l'OS).
+* text=auto
+
+# Les scripts shell doivent rester en LF meme sous Windows : avec des CRLF,
+# bash echoue des le shebang. Regle generique - le depot n'en contient aucun
+# aujourd'hui, elle attend le prochain.
+*.sh text eol=lf
+
+# Bases DuckDB : binaire, jamais touche par la normalisation. app/app.duckdb
+# est versionne pour que l'application demarre sur un clone frais.
+*.duckdb binary
+
+# reference_fingerprint.json est le terme de comparaison du controle par
+# contenu. Le script l'ecrit toujours en LF ; avec `text=auto` un clone sous
+# Windows le recevrait en CRLF, et le fichier fraichement regenere differerait
+# du fichier versionne par la seule fin de ligne - un faux positif a
+# l'interieur meme du controle qui existe pour distinguer le vrai du faux.
+scripts/reference_fingerprint.json text eol=lf

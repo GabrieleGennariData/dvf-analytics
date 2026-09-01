@@ -1,0 +1,19 @@
+# Donnees sources : CSV DVF+ et COG telecharges depuis les sites officiels
+# (plusieurs Go). Recrees par : python scripts/download_dvfplus.py
+data/
+
+# Bases DuckDB : celle de travail (data/dvf.duckdb) est regeneree par
+# dbt build. Exception : app/app.duckdb, l'export leger versionne pour que
+# l'application demarre sur un clone frais.
+*.duckdb
+!app/app.duckdb
+
+# Artefacts dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/.user.yml
+logs/
+
+# Python
+.venv/
+__pycache__/
