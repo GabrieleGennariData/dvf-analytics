@@ -19,3 +19,8 @@
 # du fichier versionne par la seule fin de ligne - un faux positif a
 # l'interieur meme du controle qui existe pour distinguer le vrai du faux.
 scripts/reference_fingerprint.json text eol=lf
+
+# dbt reecrit package-lock.yml a chaque build, toujours en LF. Sans cette
+# ligne un clone Windows le recoit en CRLF, le premier build le salit, et la
+# garde de reference_fingerprint.py refuse alors de prendre le tree hash.
+dbt/package-lock.yml text eol=lf
