@@ -140,9 +140,13 @@ def simplify(geojson, tolerance, decimals, max_passes=5):
     while passes < max_passes:
         nxt = simplify_once(result, tolerance, decimals)
         passes += 1
-        if count_points(nxt) == count_points(result):
-            break
+        # Garder `nxt` AVANT de sortir : sur une entree deja simplifiee la
+        # premiere passe ne retire aucun point, et sortir sans l'affectation
+        # rendait l'entree telle quelle, arrondi compris.
+        stable = count_points(nxt) == count_points(result)
         result = nxt
+        if stable:
+            break
     changes = []
     for before_feature, after_feature in zip(geojson["features"], result["features"]):
         before = ring_area(before_feature["geometry"]["coordinates"])
