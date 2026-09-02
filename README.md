@@ -122,7 +122,8 @@ app/            streamlit_app.py, departements.geojson, app.duckdb - l'export
                 léger produit par scripts/export_app_db.py, versionné pour que
                 l'application démarre sur un clone frais
 dbt/            models/{staging,intermediate,marts}, tests/, dbt_project.yml, profiles.yml
-scripts/        download_dvfplus.py, export_app_db.py, reference_fingerprint.py (+ .json)
+scripts/        download_dvfplus.py, export_app_db.py, reference_fingerprint.py (+ .json),
+                simplify_geojson.py
 data/           raw_dvfplus/ et raw_cog/ (script de téléchargement), dvf.duckdb (dbt build)
                 - non versionnés
 ```
