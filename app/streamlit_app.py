@@ -517,8 +517,12 @@ def get_connection():
     return connect()
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_resource(show_spinner=False)
 def load_geojson():
+    """`cache_resource` et non `cache_data` : le trace ne change jamais, et
+    `cache_data` en rendrait une copie profonde a chaque rerun - mesure a
+    26,9 Mio et 150 ms, pour une protection contre une mutation qui n'existe
+    pas."""
     return json.loads(GEOJSON.read_text(encoding="utf-8"))
 
 
