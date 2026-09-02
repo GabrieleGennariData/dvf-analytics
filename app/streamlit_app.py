@@ -341,6 +341,17 @@ def yoy_missing_reasons(con, annee=None, type_local=None, code_departement=None)
     ).fetchdf().iloc[0]
 
 
+def geojson_subset(geo, codes):
+    """Les features des seuls departements passes en argument.
+
+    Plotly embarque le GeoJSON dans la figure et Streamlit serialise la figure
+    entiere a chaque rerun : donner les 101 features a une trace qui en dessine
+    trois envoyait 3,6 Mio inutiles par clic."""
+    wanted = set(codes)
+    return {"type": geo["type"],
+            "features": [f for f in geo["features"] if f["properties"]["code"] in wanted]}
+
+
 def build_map(df_map, geo, base, annee, code_departement=None):
     """La choroplethe, fonction PURE : aucun appel a Streamlit, donc l'infobulle
     s'inspecte depuis un test. Ne dessine que la metropole ; les DOM restent
@@ -367,7 +378,8 @@ def build_map(df_map, geo, base, annee, code_departement=None):
     df_view["base_txt"] = df_view["n_ventes_eligible"].map(fmt_nb)
 
     fig = px.choropleth(
-        df_view, geojson=geo, locations="code_departement", featureidkey="properties.code",
+        df_view, geojson=geojson_subset(geo, df_view["code_departement"]),
+        locations="code_departement", featureidkey="properties.code",
         color="prix_m2_median", color_continuous_scale="Viridis",
         custom_data=["nom", "code_departement", "ventes_txt", "base_txt",
                      "var_base_txt", "prix_txt"],
@@ -403,7 +415,8 @@ def build_map(df_map, geo, base, annee, code_departement=None):
     # par un filtre.
     if nodata_drawn:
         fig.add_trace(go.Choropleth(
-            geojson=geo, locations=nodata_drawn, featureidkey="properties.code",
+            geojson=geojson_subset(geo, nodata_drawn),
+            locations=nodata_drawn, featureidkey="properties.code",
             z=[0] * len(nodata_drawn), showscale=False,
             colorscale=[[0, NO_DATA_COLOR], [1, NO_DATA_COLOR]],
             marker_line_color="#7a7a7a", marker_line_width=0.7,
