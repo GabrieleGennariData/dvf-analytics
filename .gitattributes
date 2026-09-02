@@ -10,6 +10,9 @@
 # est versionne pour que l'application demarre sur un clone frais.
 *.duckdb binary
 
+# Apercu anime du tableau de bord : binaire lui aussi.
+*.gif binary
+
 # reference_fingerprint.json est le terme de comparaison du controle par
 # contenu. Le script l'ecrit toujours en LF ; avec `text=auto` un clone sous
 # Windows le recevrait en CRLF, et le fichier fraichement regenere differerait

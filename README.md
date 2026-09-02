@@ -4,8 +4,9 @@ Pipeline analytique sur les **DVF+ open-data** (demandes de valeurs foncières a
 
 Le projet est autant une démonstration de **modélisation honnête** que de tuyauterie : chaque décision qui déplace un chiffre est écrite, mesurée et testée, et les limites du jeu de données sont déclarées dans l'application plutôt que masquées.
 
-<!-- Lien de l'application déployée à ajouter ici après le déploiement. -->
-<!-- Capture d'écran à ajouter ici : docs/screenshot.png -->
+**[Ouvrir le tableau de bord](https://dvf-analytics-gg.streamlit.app/)**
+
+![Le tableau de bord : la carte sélectionne un département au clic, le classement suit](docs/demo.gif)
 
 ## Architecture
 
@@ -126,6 +127,7 @@ scripts/        download_dvfplus.py, export_app_db.py, reference_fingerprint.py 
                 simplify_geojson.py
 data/           raw_dvfplus/ et raw_cog/ (script de téléchargement), dvf.duckdb (dbt build)
                 - non versionnés
+docs/           demo.gif - l'aperçu animé du README
 ```
 
 ## Sources des données
