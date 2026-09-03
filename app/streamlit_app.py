@@ -96,17 +96,20 @@ BOUNDS_METROPOLE = {"lonaxis_range": [-5.4, 9.8], "lataxis_range": [41.2, 51.2]}
 # la population eligible, et l'ecart avec le denominateur n'a plus qu'une cause
 # visible : les 37 383 ventes hors observation de marche.
 FOOTNOTE = (
-    "Ce tableau de bord compte deux populations, et ne les mélange jamais.\n\n"
-    "**Ventes (total)** est le volume : toutes les ventes valides de la cellule.\n\n"
-    "**Base du prix médian** est le dénominateur de la médiane : les seules ventes dont "
-    "le prix est une observation de marché.\n\n"
-    "Entre les deux se trouvent les ventes au prix calculable mais symbolique ou hors "
-    "d'échelle, en dehors de [100 ; 40 000] €/m² ou de [9 ; 1 500] m². Sur l'ensemble de "
-    "la table elles sont 37 383, soit 0,38 % des éligibles. Les mutations qui portent "
-    "plusieurs biens, elles, n'entrent pas du tout dans ce tableau : leur prix couvre "
-    "plusieurs logements et ne se ramène au m² d'aucun.\n\n"
-    "Aucune ligne n'est supprimée des données. Ce sont des drapeaux, et c'est pourquoi "
-    "le volume reste entier."
+    "Ce tableau de bord compte deux populations distinctes.\n\n"
+    "Ventes (total) est le volume, toutes les ventes valides de la cellule, "
+    "c'est-à-dire de la combinaison département (ou commune) × année × type de "
+    "bien sélectionnée dans la barre latérale.\n\n"
+    "Base du prix médian est le dénominateur de la médiane, le nombre de ventes "
+    "dont le prix vaut comme observation de marché et qui servent au calcul.\n\n"
+    "Entre les deux se trouvent les ventes dont le prix est calculable mais "
+    "symbolique ou hors d'échelle, en dehors de [100 ; 40 000] €/m² ou de "
+    "[9 ; 1 500] m². Sur l'ensemble des données, elles sont 37 383, soit 0,38 % "
+    "des éligibles. Les mutations qui portent plusieurs biens n'entrent pas du "
+    "tout dans ce tableau de bord, parce que leur prix couvre plusieurs logements "
+    "et ne se ramène au m² d'aucun.\n\n"
+    "Aucune ligne n'est supprimée des données. Les ventes écartées portent "
+    "seulement un flag, et le volume reste entier."
 )
 
 
@@ -392,7 +395,7 @@ def build_map(df_map, geo, base, annee, code_departement=None):
         "<b>%{customdata[0]}</b> (%{customdata[1]})<br>"
         "Prix m² médian : %{customdata[5]}<br>"
         "Ventes (total) : %{customdata[2]}<br>"
-        "Base du prix médian : %{customdata[3]}<br>"
+        "Ventes servant à la médiane : %{customdata[3]}<br>"
         "Variation vs " + str(base) + " : %{customdata[4]}<extra></extra>"))
 
     # Contour sur le departement SELECTIONNE, sinon le clic ne montre rien. Un
@@ -606,24 +609,28 @@ def kpi_section(row, annee, years):
         "Prix m² médian",
         fmt_nb(row["prix_m2_median"], unit="€/m²"),
         None if pd.isna(yoy) else "{} vs {}".format(fmt_pct(yoy, sign=True), annee - 1),
-        help="Médiane du prix au m² des seules ventes plausibles. C'est l'indicateur de "
-             "référence : le delta, le classement du top et la couleur de la carte "
-             "reposent tous sur cette colonne.",
+        help="Médiane du prix au m² des seules ventes plausibles, celles dont le "
+             "prix au m² tombe entre 100 et 40 000 €/m² et la surface entre 9 et "
+             "1 500 m². C'est l'indicateur de référence. Le delta annuel, le "
+             "classement et la couleur de la carte en dépendent.",
     )
     c2.metric("Ventes (total)", fmt_nb(row["n_ventes_total"]),
-              help="Volume de marché complet : toutes les ventes valides de la cellule. "
-                   "La base des prix est différente : c'est la population plausible.")
+              help="Volume de marché complet, c'est-à-dire toutes les ventes "
+                   "valides de la cellule (département, année et type de bien "
+                   "sélectionnés). Les ventes qui servent au calcul de la médiane "
+                   "sont moins nombreuses, parce que seules les plausibles y "
+                   "entrent.")
     c3.metric(
         "Prix m² moyen", fmt_nb(row["prix_m2_moyen"], unit="€/m²"),
-        help="Moyenne, affichée À CÔTÉ de la médiane et non à sa place. L'écart entre les "
-             "deux est une information : il mesure l'asymétrie à droite du marché, et la "
-             "moyenne dépasse la médiane sur 2 251 des 2 328 cellules, jusqu'à "
-             "+37,6 %. Elle n'entre pas dans le delta annuel, ne classe pas le top et ne "
-             "colore pas la carte.",
+        help="Moyenne, affichée à côté de la médiane. L'écart entre les deux "
+             "mesure l'asymétrie à droite du marché. La moyenne dépasse la médiane "
+             "sur 2 251 des 2 328 cellules, jusqu'à +37,6 %. Le delta annuel, le "
+             "classement et la carte utilisent uniquement la médiane.",
     )
     c4.metric("Surface médiane", fmt_nb(row["surface_mediane"], unit="m²"),
-              help="Médiane de la surface bâtie, sur la MÊME population que les mesures de "
-                   "prix : elle décrit le bien typique dont prix_m2_median est le prix.")
+              help="Médiane de la surface bâtie, calculée sur la même population "
+                   "que les prix. Elle décrit le bien typique dont prix_m2_median "
+                   "donne le prix.")
 
     if pd.isna(yoy):
         # La raison se nomme au lieu de laisser un tiret. Au grain departement
@@ -632,14 +639,13 @@ def kpi_section(row, annee, years):
         # ou la source laisserait un trou.
         if annee == years[0]:
             st.caption(
-                "Pas de variation annuelle : **{} est la première année de la série** et il "
-                "n'existe pas d'année précédente à comparer. Ce n'est pas une donnée "
-                "manquante.".format(annee))
+                "Variation annuelle non calculée : {} est la première année de la "
+                "série, il n'y a pas d'année précédente à comparer.".format(annee))
         else:
             st.caption(
-                "Pas de variation annuelle : l'année précédente n'est pas adjacente "
-                "(garde-fou sur la série) ou n'a pas de médiane utilisable. Ce n'est pas "
-                "un zéro.")
+                "Variation annuelle non calculée : l'année précédente manque dans "
+                "la série (le test `assert_yoy_garde` du pipeline bloque alors la "
+                "comparaison), ou elle n'a pas de médiane utilisable.")
 
     # La note sur les deux populations tient dans un depliant : longue, elle ne
     # change pas avec le filtre et repoussait la carte sous le pli.
@@ -652,22 +658,22 @@ def kpi_section(row, annee, years):
     n_elig = int(row["n_ventes_eligible"])
     if share is not None and share > 10:
         st.warning(
-            "**Signal de qualité** : dans cette cellule, {} des ventes structurellement "
-            "éligibles ({} sur {}) sont écartées du calcul des prix, parce que leur prix "
-            "au m² est symbolique ou hors d'échelle : nue-propriété, cessions "
-            "intrafamiliales, surfaces improbables. La médiane décrit le reste. Le "
-            "phénomène est géographiquement concentré et n'est pas du bruit : on le "
-            "retrouve sur 971 Guadeloupe / Maison des deux dernières années, et à la "
-            "maille commune sur 58131 (Nièvre)."
+            "Alerte qualité : dans cette cellule, {} des ventes structurellement "
+            "éligibles ({} sur {}) sont écartées du calcul des prix, parce que leur "
+            "prix au m² est symbolique ou hors d'échelle (nue-propriété, cessions "
+            "intrafamiliales, surfaces improbables). La médiane décrit le reste. Le "
+            "phénomène est concentré géographiquement. On le retrouve sur 971 "
+            "Guadeloupe / Maison pour les deux dernières années, et à la maille "
+            "commune sur 58131 (Nièvre)."
             .format(fmt_pct(share), fmt_nb(row["n_ventes_prix_exclues"]),
                     fmt_nb(row["n_ventes_eligible"] + row["n_ventes_prix_exclues"]))
         )
     if row["n_ventes_eligible"] < THRESHOLD:
         st.warning(
-            "**Cellule mince** : {} ventes plausibles, sous le seuil de {} utilisé par le "
-            "classement. Les valeurs restent affichées, parce qu'une cellule supprimée "
-            "est indiscernable d'une donnée manquante, mais une médiane sur {} "
-            "observations n'est pas un prix de marché."
+            "Cellule mince : {} ventes plausibles, sous le seuil de {} utilisé par "
+            "le classement. Les valeurs restent affichées, parce qu'une cellule "
+            "masquée ressemblerait à une donnée manquante, mais une médiane calculée "
+            "sur {} ventes reste trop fragile pour valoir un prix de marché."
             .format(int(row["n_ventes_eligible"]), THRESHOLD, int(row["n_ventes_eligible"]))
         )
 
@@ -679,28 +685,30 @@ def reasons_section(annee, type_local, code_departement):
     with st.expander("Pourquoi tant de communes n'apparaissent pas"):
         a, b, c = st.columns(3)
         a.metric("Première année de la série", fmt_nb(m["first_year_of_series"]))
-        b.metric("Année précédente non adjacente", fmt_nb(m["previous_not_adjacent"]))
+        b.metric("Année non adjacente", fmt_nb(m["previous_not_adjacent"]),
+                 help="L'année précédente manque dans la série, la comparaison "
+                      "porterait sur deux années qui ne se suivent pas.")
         c.metric("Médiane absente", fmt_nb(m["median_missing"]))
         st.markdown(
-            "Ce filtre porte sur **{}** {}. Dans **{}** cas, la variation par rapport à "
-            "l'année précédente ne s'affiche pas, et chacun relève d'une seule des trois "
-            "raisons ci-dessous.\n\n"
+            "Ce filtre porte sur {} {}. Dans {} cas, la variation par rapport à "
+            "l'année précédente ne s'affiche pas, chaque cas relevant d'une seule "
+            "des trois raisons ci-dessous.\n\n"
             "1. **Première année de la série.** Il n'y a pas d'année précédente à "
             "comparer.\n"
-            "2. **Année précédente non adjacente.** La série a un trou, et le garde-fou "
-            "refuse de comparer deux années qui ne se suivent pas. Sans lui, 26 583 lignes "
-            "de la table porteraient une « variation annuelle » calculée sur des années "
-            "distantes de plusieurs années, dont 26 228 avec un résultat chiffré et "
-            "plausible.\n"
-            "3. **Médiane absente.** La commune a des ventes, mais aucun prix exploitable. "
-            "Sur toute la table, 871 cellules sont dans ce cas, pour 963 ventes "
-            "réelles.\n\n"
-            "Dans aucun des trois cas la variation ne s'affiche comme un zéro, qui "
-            "voudrait dire « le prix n'a pas bougé » et serait faux.\n\n"
-            "S'ajoutent les communes écartées par le seuil de {} ventes : elles existent, "
-            "mais leur base est trop mince pour être classée. À la maille commune, "
-            "**86,95 %** des cellules de la table sont dans ce cas, et le classement porte "
-            "donc sur 13,05 % de la table."
+            "2. **Année non adjacente.** La série a un trou, et le test "
+            "`assert_yoy_garde` du pipeline empêche de comparer deux années qui ne "
+            "se suivent pas. Sans ce contrôle, 26 583 lignes afficheraient une "
+            "« variation annuelle » calculée sur des années séparées de plusieurs "
+            "ans, dont 26 228 avec un résultat chiffré et plausible.\n"
+            "3. **Médiane absente.** La commune a des ventes, mais aucun prix "
+            "exploitable. Sur l'ensemble des données, 871 combinaisons commune × "
+            "année × type de bien sont dans ce cas, pour 963 ventes réelles.\n\n"
+            "Dans les trois cas, la case reste vide. Un zéro voudrait dire « le prix "
+            "n'a pas bougé », ce qui serait faux.\n\n"
+            "S'ajoutent les communes écartées par le seuil de {} ventes. À cette "
+            "maille, 86,95 % des combinaisons commune × année × type de bien "
+            "reposent sur trop peu de ventes pour être classées ; le classement "
+            "montre les 13,05 % restants."
             .format(fmt_nb(n_celle), plur(n_celle, "commune", "communes"),
                     fmt_nb(n_assenti), THRESHOLD)
         )
@@ -759,15 +767,15 @@ def map_section(annee, type_local, code_departement, names):
         # Limite declaree a l'ecran, mais en une ligne : le detail arrive par
         # le toast quand on clique sur un departement gris.
         st.caption(
-            "**En gris, {} : aucune donnée.** C'est une lacune de la source, pas un "
-            "filtre de ce tableau de bord. Avec Mayotte ({}), hors cadre, 97 départements "
-            "sur 101 ont des données. *Cliquez un département gris pour connaître la "
-            "raison.*"
+            "En gris, {} : aucune donnée, parce que la source ne couvre pas ces "
+            "départements. Mayotte ({}) est hors cadre elle aussi, ce qui laisse "
+            "97 départements sur 101 avec des données. Cliquez un département gris "
+            "pour connaître la raison."
             .format(", ".join(nodata_drawn), ", ".join(nodata_outside_frame))
         )
         st.caption(
-            "**La carte cadre la métropole.** Les DOM ({}) sont dans les données et dans "
-            "le sélecteur *Département*, mais pas sur le dessin."
+            "La carte ne dessine que la métropole. Les DOM ({}) restent accessibles "
+            "par les données et par le sélecteur Département."
             .format(", ".join(dom_in_data))
         )
 
@@ -777,48 +785,61 @@ def map_section(annee, type_local, code_departement, names):
 def top_n_section(annee, type_local, code_departement, names):
     """Tableau du top-N : seuil sur les DEUX annees, limite arrondissement
     declaree la ou elle sert."""
-    st.subheader("Top {} des communes par variation annuelle ({}, {}, {})".format(
-        TOP_N, names.get(code_departement, code_departement), type_local, annee))
+    st.subheader("Top {} des communes par variation annuelle".format(TOP_N))
+    st.caption("Département : **{}**  ·  Type de bien : **{}**  ·  Année : **{}**"
+               .format(names.get(code_departement, code_departement), type_local, annee))
 
     # La limite se declare la ou elle sert, pas dans un depliant ferme : avec
     # 75 selectionne, rien d'autre n'explique que « commune » signifie
     # arrondissement.
     if code_departement in ARRONDISSEMENT:
         city, code_range, missing_code = ARRONDISSEMENT[code_departement]
+        premier = code_range.split("-")[0]
         st.warning(
-            "**Ici, « commune » signifie arrondissement.** Les DVF ne connaissent pas {} "
-            "comme une commune : le code `{}` **n'existe pas dans la source**, qui livre "
-            "la ville découpée en arrondissements (`{}`). Le tableau les traite tels "
-            "quels, sans les agréger. À garder en tête en lisant les chiffres : les "
-            "cellules sont **bien plus minces** que le nom de la ville ne le laisse "
-            "croire, et beaucoup passent sous le seuil de {} ventes."
-            .format(city, missing_code, code_range, THRESHOLD)
+            "Ici, « commune » signifie arrondissement. Les DVF ne connaissent pas "
+            "{} comme commune. Le code `{}` n'existe pas dans la source, qui livre "
+            "la ville découpée en arrondissements (`{}`). Dans le tableau "
+            "ci-dessous, `{}` est le 1er arrondissement de {}, `{}` le 2e, et ainsi "
+            "de suite ; {} dans son ensemble n'y figure nulle part. Chaque ligne "
+            "ne porte donc que les ventes de son arrondissement, bien moins que le "
+            "nom de la ville ne le laisse croire, et beaucoup passent sous le seuil "
+            "de {} ventes."
+            .format(city, missing_code, code_range, premier, city,
+                    str(int(premier) + 1), city, THRESHOLD)
         )
 
     top = q_top_n(annee, type_local, code_departement, True, TOP_N)
     if top.empty:
         st.info(
-            "Aucune commune de ce département n'atteint {} ventes plausibles sur les "
-            "**deux** années, pour {} en {}. Il y a bien eu des ventes : simplement, "
-            "aucune commune n'en a assez pour qu'une variation annuelle soit lisible."
+            "Aucune commune de ce département n'atteint {} ventes plausibles sur "
+            "les deux années, pour {} en {}. Des ventes ont eu lieu, mais aucune "
+            "commune n'en compte assez pour qu'une variation annuelle soit lisible."
             .format(THRESHOLD, type_local, annee)
         )
     else:
         st.dataframe(
             style_top_n(top, annee),
             width="stretch", hide_index=True,
+            column_config={
+                "Base {}".format(annee - 1): st.column_config.Column(
+                    help="Nombre de ventes qui servent au calcul de la médiane "
+                         "de {}.".format(annee - 1)),
+                "Base {}".format(annee): st.column_config.Column(
+                    help="Nombre de ventes qui servent au calcul de la médiane "
+                         "de {}.".format(annee)),
+            },
         )
         st.caption(
-            "Le classement va de la plus forte variation à la plus faible, en **valeur "
-            "absolue** : une baisse de 20 % y pèse autant qu'une hausse de 20 %, et les "
-            "baisses ne disparaissent donc pas sous les hausses. Pour y figurer, une "
-            "commune doit compter au moins {} ventes plausibles **les deux années**, et "
-            "pas seulement celle qui est affichée. C'est plus exigeant : sur l'ensemble "
-            "de la table, 48 161 cellules passent, contre 55 180 si l'on ne regardait que "
-            "l'année courante. Les 7 019 écartées avaient une base trop mince l'année "
-            "d'avant, parfois **une seule vente** ; une variation calculée contre une "
-            "médiane d'une seule vente ressemble à n'importe quel pourcentage, et n'en "
-            "est pas un.".format(THRESHOLD)
+            "Le classement va de la plus forte variation à la plus faible, en valeur "
+            "absolue : une baisse de 20 % y pèse autant qu'une hausse de 20 %. Pour "
+            "y figurer, une commune doit compter au moins {} ventes plausibles sur "
+            "chacune des deux années comparées, l'année affichée et la précédente. "
+            "Ce critère est plus exigeant. Sur l'ensemble des données, 48 161 "
+            "combinaisons commune × année × type de bien passent, contre 55 180 si "
+            "l'on ne regardait que l'année courante. Les 7 019 écartées avaient une "
+            "base trop mince l'année d'avant, parfois une seule vente, et une "
+            "variation calculée contre la médiane d'une seule vente ne mesure "
+            "rien.".format(THRESHOLD)
         )
 
 
@@ -831,56 +852,60 @@ def limits_section():
         below = q_below_threshold()
         if below.empty:
             st.markdown(
-                "**À la maille département, aucune cellule ne passe sous le seuil de {} "
-                "ventes plausibles** : les 2 328 cellules ont toutes une base suffisante, "
-                "la plus mince en comptant 50. À la maille commune c'est l'inverse, et "
-                "les cellules minces y sont la norme : voir le seuil du classement."
+                "Au niveau des départements, les 2 328 combinaisons département × "
+                "année × type de bien dépassent toutes le seuil de {} ventes "
+                "plausibles ; la plus mince en compte 50. Au niveau des communes, "
+                "c'est l'inverse : la plupart reposent sur trop peu de ventes pour "
+                "être classées (voir le seuil du classement)."
                 .format(THRESHOLD)
             )
         else:
             st.markdown(
-                "**Le seuil n'élimine pas un échantillon aléatoire.** À la maille "
-                "département, les cellules sous {} ventes plausibles sont **{} sur 2 328** "
-                "({}). C'est pourquoi les cellules minces sont ici annotées et non "
-                "masquées."
-                .format(THRESHOLD, fmt_nb(len(below)), fmt_pct(100.0 * len(below) / 2328))
+                "Les cellules sous le seuil ne se répartissent pas au hasard. Au "
+                "niveau des départements, {} combinaisons sur 2 328 ({}) comptent "
+                "moins de {} ventes plausibles. C'est pourquoi elles restent "
+                "affichées, avec une annotation."
+                .format(fmt_nb(len(below)), fmt_pct(100.0 * len(below) / 2328),
+                        THRESHOLD)
             )
             below_view = below.rename(columns={
                 "code_departement": "Département", "annee": "Année",
                 "type_local": "Type de bien", "n_ventes_eligible": "Ventes (base)"})
             st.dataframe(below_view, width="stretch", hide_index=True)
         st.markdown(
-            "**Paris, Lyon et Marseille n'existent pas comme communes dans les DVF.** La "
-            "source livre ces trois villes découpées en arrondissements (`75101`-`75120`, "
-            "`69381`-`69389`, `13201`-`13216`), et le classement les traite tels quels : "
-            "45 communes séparées, aucune agrégation. Vérifié sur cette édition : les "
-            "codes `75056`, `69123` et `13055` n'apparaissent dans aucune des "
-            "16 565 022 mutations, alors que le référentiel COG les connaît. Agréger ne "
-            "serait pas gratuit : on peut sommer des comptages, pas des médianes, parce "
-            "que la médiane des médianes n'est pas la médiane. Ce que ce choix coûte : "
-            "sur 991 cellules d'arrondissement, **272 (27,4 %) passent sous le seuil**, "
-            "toutes des maisons, et aucune des 540 cellules `Appartement`."
+            "Paris, Lyon et Marseille n'existent pas comme communes dans les DVF. "
+            "La source livre ces trois villes découpées en arrondissements "
+            "(`75101`-`75120`, `69381`-`69389`, `13201`-`13216`), et le classement "
+            "les traite tels quels : 45 communes séparées, aucune agrégation. "
+            "Vérifié sur cette édition, les codes `75056`, `69123` et `13055` "
+            "n'apparaissent dans aucune des 16 565 022 mutations, alors que le "
+            "référentiel COG les connaît. Agréger aurait un coût, parce qu'on peut "
+            "additionner des comptages mais pas des médianes (la médiane des "
+            "médianes n'est pas la médiane). En contrepartie, sur 991 cellules "
+            "d'arrondissement, 272 (27,4 %) passent sous le seuil, toutes des "
+            "maisons, et aucune des 540 cellules `Appartement`."
         )
         st.markdown(
-            "**Le seuil ne dit pas tout de l'incertitude.** Une cellule peut dépasser "
-            "largement les {} ventes et porter quand même une variation fragile. Mesuré "
-            "par bootstrap sur les 194 paires département × type de la comparaison "
-            "2014-2025 : l'intervalle à 95 % fait 7,6 points de large en médiane, mais "
-            "**14 paires dépassent 20 points**. Paris donne le contraste le plus net. Les "
-            "**appartements** y gagnent +20,4 %, avec un intervalle de [+19,8 ; +21,0] "
-            "large de 1,2 point sur près de 25 000 ventes. Les **maisons** gagnent "
-            "+24,1 %, avec [+4,5 ; +41,8], large de 37 points sur 114 ventes. Même ville, "
-            "même période, et un seul des deux chiffres est solide : c'est le nombre de "
-            "ventes qui dit lequel.".format(THRESHOLD)
+            "Une cellule peut dépasser largement les {} ventes et porter quand même "
+            "une variation fragile. Mesuré par bootstrap sur les 194 couples "
+            "département × type de bien (97 × 2) de la comparaison 2014-2025, "
+            "l'intervalle à 95 % fait 7,6 points de large en médiane, mais "
+            "14 couples dépassent 20 points. Paris donne l'exemple le plus net. Les "
+            "appartements y gagnent +20,4 %, avec un intervalle de [+19,8 ; +21,0], "
+            "1,2 point de large, sur près de 25 000 ventes. Les maisons gagnent "
+            "+24,1 %, avec [+4,5 ; +41,8], 37 points de large, sur 114 ventes. Seul "
+            "le chiffre des appartements est fiable, et la différence vient du "
+            "nombre de ventes.".format(THRESHOLD)
         )
         st.markdown(
-            "**Autres limites déclarées.** Les actes qui portent sur plusieurs communes "
-            "(180 390, soit 1,19 % des ventes) n'ont pas de commune attribuée : ils "
-            "comptent dans les chiffres départementaux, pas dans ce tableau. Et 347 codes "
-            "commune (18 629 ventes, 0,124 %) manquent au référentiel COG 2026 : des "
-            "communes fusionnées depuis, dont la part diminue à mesure que l'acte est "
-            "récent, plus Saint-Barthélemy et Saint-Martin, qui ne sont plus des communes. "
-            "Leurs ventes comptent partout, mais sans nom lisible."
+            "Autres limites déclarées. Les actes qui portent sur plusieurs communes "
+            "(180 390, soit 1,19 % des ventes) n'ont pas de commune attribuée : ils "
+            "comptent dans les chiffres départementaux et sont absents du "
+            "classement. Et 347 codes commune (18 629 ventes, 0,124 %) manquent au "
+            "référentiel COG 2026, des communes fusionnées depuis, dont la part "
+            "diminue à mesure que l'acte est récent, plus Saint-Barthélemy et "
+            "Saint-Martin, qui ne sont plus des communes. Leurs ventes comptent "
+            "partout, mais sans nom lisible."
         )
 
 
@@ -895,8 +920,10 @@ def main():
 
     st.title("Prix de l'immobilier en France (DVF)")
     st.caption(
-        "Maille : département × année × type de bien. Source : DVF+ open-data "
-        "(Cerema, données DGFiP), années {}-{}. Les mesures de prix sont des médianes."
+        "Chaque chiffre décrit un département pour une année et un type de bien. "
+        "Ce niveau d'agrégation est la « maille » du tableau de bord. Source : "
+        "DVF+ open-data (Cerema, données DGFiP), années {}-{}. Les prix sont des "
+        "médianes."
         .format(years[0], years[-1])
     )
 
